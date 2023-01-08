@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3
+    hostname: rabbitmq
+    ports:
+      - 15672:15672
+      - 5672:5672
+
+  postgres:
+    image: postgres:latest
+    env_file:
+      - .env
+    ports:
+      - 5432:5432
+
+  kassandra-bot:
+    image: rensen92/kassandra-bot:latest
+    env_file:
+      - .env
+    links:
+      - rabbitmq
+      - postgres
+
+  kassandra-backend:
+    image: rensen92/kassandra-backend:latest
+    links:
+      - rabbitmq
+      - postgres
+
+  init_db:
+    build: .
+    depends_on:
+      - postgres
+    command: poetry run python create_tables.py
